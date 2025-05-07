@@ -1,0 +1,24 @@
+#!/bin/sh
+case "$1" in
+  start)
+    echo "Mounting UBI data partition..."
+    # Create mount point
+    mkdir -p /data
+    
+    # Initialize UBI and mount
+    ubiattach /dev/ubi_ctrl -m 2
+    if [ $? -eq 0 ]; then
+      mount -t ubifs ubi0:user /data
+      echo "UBI data partition mounted at /data"
+    else
+      echo "Failed to attach UBI device"
+    fi
+    ;;
+  stop)
+    umount /data
+    ubidetach -m 2
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+esac
