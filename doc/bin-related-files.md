@@ -1,5 +1,15 @@
 ldd ./rsync
 
+
+tftp -g -r rsync 192.168.0.2
+tftp -g -r python3.11 192.168.0.2
+tftp -g -r libssl.so.3   192.168.0.2
+tftp -g -r libpopt.so.0   192.168.0.2
+tftp -g -r libcrypto.so.3   192.168.0.2
+tftp -g -r ssh   192.168.0.2
+
+./rsync -avz joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/ /data/user/ 
+
 libpopt.so.0 => not found
 libc.so.6 => /lib/libc.so.6 (0xb6f4c000)
 /lib/ld-linux.so.3 => /lib/ld-linux.so.3 (0xb6f2c000)
