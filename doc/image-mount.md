@@ -5,10 +5,18 @@ export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
 export PATH=/data/usr/bin:$PATH
 cd /data
 
+# Make sure these are set correctly
+export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/data/usr/lib/python3/site-packages:$PYTHONPATH
+
 export LD_LIBRARY_PATH=/data/user/usr/lib:$LD_LIBRARY_PATH 
 
 ### rsync
-rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/ /data/usr/
+** copy to nuc980 **
+
+
+** backup nuc980 **
+rsync -avz --progress --delete /data/usr/ joseph@10.22.22.107:/home/joseph/project/nuc980/backup_nuc980_data/ 
 
 ls output/target/usr/libexec
 rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/libexec/ /data/usr/libexec/

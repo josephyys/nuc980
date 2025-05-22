@@ -248,3 +248,13 @@ busybox tftp -g -r uart_loopback_test 192.169.0.1
 
 # busybox tftp -g -r uart_loopback_test -l hhh 192.169.0.1
 tftp: server error: (2) Only absolute filenames allowed
+
+
+# First clear the port and set it up
+stty -F /dev/ttyS5 19200 raw -echo -crtscts cs8 -parenb -cstopb
+
+# Send some test data
+echo "Test123" > /dev/ttyS5
+
+# Read back (in same shell window)
+timeout 2 cat /dev/ttyS5

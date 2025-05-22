@@ -3,4 +3,9 @@ saveenv
 
 scp /home/joseph/project/nuc980/initramfs/output/images/ 
 
-output/build/linux-headers-custom/.config
+output/build/linux-custom/.config
+
+git add -f    output/images/rootfs.ubi
+git add -f    output/images/rootfs.ubifs
+git add -f    output/images/rootfs.yaffs2
+git add -f    output/images/uImage
