@@ -13,3 +13,7 @@
 *.rej
 *~
 *.pyc
+# Python bytecode and shared libraries
+output/target/usr/lib/python3.11/**/*.pyc
+output/target/usr/lib/python3.11/**/__pycache__/
+output/target/usr/lib/libpython3.11*
