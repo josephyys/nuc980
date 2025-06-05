@@ -3114,3 +3114,196 @@ python3 ble_scanner_simple.py /dev/ttyACM0 es110 "R/EBCAECAwQFBg8P" 81DFD14F-BFA
 ```
 
 This gives you the Python interface you want while leveraging your working C implementation underneath.
+
+
+That's a very relevant discovery! The Nordic DevZone issue you found points to a **critical problem with CCCD write operations**. Let me analyze your code and fix the issue.
+
+## 🚨 **The Problem: Invalid CCCD Write Parameters**
+
+Looking at your `response_cccd_set()` function, there's a **major issue**:
+
+````c
+static uint32_t response_cccd_set(uint8_t value)
+{
+    // ... 
+    write_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    write_params.offset   = 0;
+    write_params.flags= BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;  // ← WRONG FLAG!
+    // ...
+}
+````
+
+## 🔧 **Fix 1: Correct CCCD Write Parameters**
+
+````c
+static uint32_t response_cccd_set(uint8_t value)
+{
+    ble_gattc_write_params_t write_params;
+    uint8_t cccd_value[2] = {value, 0};
+
+    printf("✅ Setting Response CCCD to: %s (0x%02X) to handle (0x%04X)\n", 
+           value ? "ENABLED" : "DISABLED", value, m_cccd_handle);
+
+    if (m_cccd_handle == 0) {
+        printf("Error: No CCCD handle found\n");
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    // ✅ CORRECT CCCD WRITE PARAMETERS
+    write_params.handle   = m_cccd_handle;
+    write_params.len      = 2;
+    write_params.p_value  = cccd_value;
+    write_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    write_params.offset   = 0;
+    write_params.flags    = 0;  // ← FIX: Remove the prepared write flag!
+
+    uint32_t result;
+    LOG_SD_BLE_CALL(result = sd_ble_gattc_write(m_adapter, m_conn_handle, &write_params), "CCCD Enable Write Request");
+
+    return result;  
+}
+````
+
+## 🔧 **Fix 2: Add tx_process() Call After CCCD Write Response**
+
+This is the **key fix** from the Nordic DevZone issue:
+
+````c
+case BLE_GATTC_EVT_WRITE_RSP: {
+    const uint16_t handle = p_ble_evt->evt.gattc_evt.params.write_rsp.handle;
+    printf("Write response received for handle: 0x%04X\n", handle);
+    
+    if (handle == m_cccd_handle) {
+        printf("✅ CCCD %s successfully!\n", g_cccd_value ? "ENABLED" : "DISABLED");
+        
+        // ✅ ADD THIS CRITICAL FIX: Call tx_process after CCCD write response
+        print_timestamp();
+        printf("🔧 Calling sd_ble_gattc_tx_process to flush TX queue...\n");
+        uint32_t tx_err = sd_ble_gattc_tx_process(m_adapter, m_conn_handle);
+        if (tx_err == NRF_SUCCESS) {
+            printf("✅ TX process completed successfully\n");
+        } else {
+            printf("⚠️ TX process failed: 0x%08X\n", tx_err);
+        }
+        
+        // Only send command in SEND_COMMAND mode
+        if (g_current_mode == MODE_SEND_COMMAND) {
+            printf("CCCD enabled, sending command...\n");
+            force_send_command();
+        } else {
+            printf("Discovery mode: CCCD enabled but not sending command\n");
+        }
+    }
+    break;
+}
+````
+
+## 🔧 **Fix 3: Add tx_process() After Command Write**
+
+Also add it after your command write:
+
+````c
+void force_send_command() {
+    print_timestamp();
+    printf("🚀 FORCE SENDING COMMAND TO WRITE CHARACTERISTIC 0x%04X\n", m_char_handle);
+    
+    // ... existing code ...
+    
+    print_timestamp();
+    printf("🔧 API CALL: sd_ble_gattc_write - Command Write (No Response Expected)\n");
+    uint32_t err = sd_ble_gattc_write(m_adapter, m_conn_handle, &write_params);
+    print_timestamp();
+    printf("   Result: %s (0x%08X)\n", err == NRF_SUCCESS ? "SUCCESS" : "ERROR", err);
+    
+    if (err == NRF_SUCCESS) {
+        // ✅ ADD TX PROCESS AFTER COMMAND WRITE TOO
+        print_timestamp();
+        printf("🔧 Calling sd_ble_gattc_tx_process after command write...\n");
+        uint32_t tx_err = sd_ble_gattc_tx_process(m_adapter, m_conn_handle);
+        if (tx_err == NRF_SUCCESS) {
+            printf("✅ TX process completed successfully\n");
+        } else {
+            printf("⚠️ TX process failed: 0x%08X\n", tx_err);
+        }
+        
+        print_timestamp();
+        printf("✅ Command sent successfully! Now waiting for response...\n");
+        g_notification_start_time = time(NULL);
+        g_waiting_for_notification = true;
+    }
+}
+````
+
+## 🔧 **Fix 4: Handle the Real Notification Event (0x0039)**
+
+Based on the event mapping we found earlier, **0x0039 is the real notification event**:
+
+````c
+// Add this case for the REAL notification event:
+case 0x0039: {  // BLE_GATTC_EVT_HVX - The REAL notification event!
+    print_timestamp();
+    printf("!!! REAL NOTIFICATION EVENT 0x0039 (BLE_GATTC_EVT_HVX) !!!\n");
+    
+    const ble_gattc_evt_hvx_t* p_hvx = &p_ble_evt->evt.gattc_evt.params.hvx;
+    
+    print_timestamp();
+    printf("Notification Handle: 0x%04X, Length: %d bytes\n", p_hvx->handle, p_hvx->len);
+    print_timestamp();
+    printf("Type: %s\n", p_hvx->type == BLE_GATT_HVX_NOTIFICATION ? "NOTIFICATION" : "INDICATION");
+    
+    if (p_hvx->handle == 0x00A0 || p_hvx->handle == m_response_handle) {
+        print_timestamp();
+        printf("🎉 REAL NOTIFICATION RECEIVED from handle 0x%04X!\n", p_hvx->handle);
+        
+        print_timestamp();
+        printf("Response data (%d bytes):\n", p_hvx->len);
+        for (int i = 0; i < p_hvx->len; i++) {
+            printf("%02X ", p_hvx->data[i]);
+            if ((i + 1) % 16 == 0) printf("\n");
+        }
+        printf("\n");
+        
+        g_notification_received = true;
+        print_timestamp();
+        printf("🎉 COMMAND SUCCESSFUL - Real notification received!\n");
+        disconnect_device();
+    } else {
+        print_timestamp();
+        printf("📝 Notification from unexpected handle: 0x%04X\n", p_hvx->handle);
+    }
+    break;
+}
+
+// Keep 0x001F as GAP event handler:
+case 0x001F: {
+    print_timestamp();
+    printf("!!! GAP EVENT 0x001F (Connection Parameter Update or similar) !!!\n");
+    print_timestamp();
+    printf("This is a GAP layer event, not related to notifications\n");
+    // Don't disconnect - this is not an error
+    break;
+}
+````
+
+## **Key Points from the Nordic Issue**
+
+1. **`BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE` flag is wrong** for CCCD writes
+2. **`sd_ble_gattc_tx_process()` must be called** after receiving `BLE_GATTC_EVT_WRITE_RSP`
+3. **Without `tx_process()`, the TX queue gets stuck** and subsequent operations fail
+
+## **Expected Results After Fix**
+
+```bash
+[timestamp] ✅ CCCD ENABLED successfully!
+[timestamp] 🔧 Calling sd_ble_gattc_tx_process to flush TX queue...
+[timestamp] ✅ TX process completed successfully
+[timestamp] CCCD enabled, sending command...
+[timestamp] 🔧 API CALL: sd_ble_gattc_write - Command Write
+[timestamp] ✅ TX process completed successfully  
+[timestamp] ✅ Command sent successfully! Now waiting for response...
+[timestamp] !!! REAL NOTIFICATION EVENT 0x0039 (BLE_GATTC_EVT_HVX) !!!
+[timestamp] 🎉 REAL NOTIFICATION RECEIVED from handle 0x00A0!
+[timestamp] 🎉 COMMAND SUCCESSFUL - Real notification received!
+```
+
+The **`tx_process()` call** is crucial - it flushes the TX queue and allows proper notification flow. This is exactly what was missing and causing your timeout issues!

@@ -534,3 +534,26 @@ cp -r simple_nordic_wrapper_v5 /data/usr/lib/python3/site-packages/
 
 /home/joseph/project/nuc980/buildroot_2024/output/host/bin/arm-nuvoton-linux-gnueabi-nm -D --defined-only ./libnrf-ble-driver-sd_api_v5.so | grep -i "event\|scan\|gap"
 sd_ble_gattc_write 
+
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/arm-nuvoton-linux-gnueabi-nm -D --defined-only ./libnrf-ble-driver-sd_api_v5.so | grep tx_process
+
+
+# Find BLE_GATTC_EVT_HVX definition
+grep -r "BLE_GATTC_EVT_HVX" /home/joseph/project/nuc980/pc-ble-driver/
+grep -r "0x001F" /home/joseph/project/nuc980/pc-ble-driver/
+
+# Find all GATT client events
+grep -r "BLE_GATTC_EVT_" /home/joseph/project/nuc980/pc-ble-driver/include/ | grep "#define"
+
+# Find timeout events
+grep -r "TIMEOUT" /home/joseph/project/nuc980/pc-ble-driver/include/ | grep "#define"
+
+# Look in the main BLE types header
+find /home/joseph/project/nuc980/pc-ble-driver/ -name "ble_gattc.h" -exec cat {} \;
+
+# Check specific event ID values
+grep -A 20 -B 5 "BLE_GATTC_EVT_" /home/joseph/project/nuc980/pc-ble-driver/include/sd_api_v5/ble_gattc.h
+
+
+## header
+/home/joseph/project/nuc980/pc-ble-driver/include/sd_api_v2/ble_gattc.h
