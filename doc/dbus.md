@@ -63,7 +63,7 @@ scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target
 scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libffi.so* /data/usr/lib/
 
 # Copy GI typelibs (introspection data)
-scp -r joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/girepository-1.0 /data/usr/lib/
+scp -r joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/girepository-1.0 /data/usr/lib/
 
 # Copy GIR files
 scp -r joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/share/gir-1.0 /data/usr/share/

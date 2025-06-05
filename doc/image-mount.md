@@ -9,7 +9,9 @@ export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
  export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
 cd /data
 
-
+##
+scp -P 8084 /data/p_dbus/w-cmd.py joseph@52.197.102.250:/home/joseph/project/nuc980/pc-ble-driver-py/
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/pc-ble-driver-py/w-cmd.py  /data/p_dbus/w-cmd.py 
 
 # Make sure these are set correctly
 export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
@@ -30,6 +32,8 @@ rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/d
 #### backup
 
 ** backup nuc980 **
+rsync -avz --progress -e "ssh -p 8084" --delete /data/ joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/ 
+
 rsync -avz --progress --delete /data/usr/ joseph@10.22.22.107:/home/joseph/project/nuc980/backup_nuc980_data/ 
 
 rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/backup_nuc980_data_dongle/ 
