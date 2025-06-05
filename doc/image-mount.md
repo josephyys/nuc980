@@ -4,6 +4,9 @@ mount -t yaffs2 /dev/mtdblock2 /data
 export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
 export PATH=/data/usr/bin:$PATH
 export PYTHONPATH=/data/usr/lib/python3/site-packages:$PYTHONPATH
+export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
+
+ export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
 cd /data
 
 
@@ -17,6 +20,14 @@ export LD_LIBRARY_PATH=/data/user/usr/lib:$LD_LIBRARY_PATH
 ### rsync
 ** copy to nuc980 **
 
+####  restore
+##### bluez
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_usr_bluez/usr/ /data/usr/ 
+
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_data_dongle/usr/ /data/usr/ 
+
+
+#### backup
 
 ** backup nuc980 **
 rsync -avz --progress --delete /data/usr/ joseph@10.22.22.107:/home/joseph/project/nuc980/backup_nuc980_data/ 
