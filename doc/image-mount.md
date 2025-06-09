@@ -3,12 +3,19 @@ mkdir -p /data
 mount -t yaffs2 /dev/mtdblock2 /data
 export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
 export PATH=/data/usr/bin:$PATH
-export PYTHONPATH=/data/usr/lib/python3/site-packages:$PYTHONPATH
 export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
-
- export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
+export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
 cd /data
 
+
+### backup /data/ not include usr
+rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data_no_usr/
+
+## test init.d
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/initramfs/output/target/etc/init.d/K90unmount_data  /etc/init.d/
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/initramfs/output/target/etc/init.d/S90mount_data  /etc/init.d/
+## web server
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/gateway-py/simple_web_server.py  /data/p_dbus/
 ##
 scp -P 8084 /data/p_dbus/w-cmd.py joseph@52.197.102.250:/home/joseph/project/nuc980/pc-ble-driver-py/
 scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/pc-ble-driver-py/w-cmd.py  /data/p_dbus/w-cmd.py 
@@ -23,8 +30,11 @@ export LD_LIBRARY_PATH=/data/user/usr/lib:$LD_LIBRARY_PATH
 ** copy to nuc980 **
 
 ####  restore
-##### bluez
-rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_usr_bluez/usr/ /data/usr/ 
+##### dbus
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/ /data/usr/ 
+
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/ /data/
+
 
 rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_data_dongle/usr/ /data/usr/ 
 
