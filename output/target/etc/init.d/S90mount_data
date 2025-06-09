@@ -1,0 +1,216 @@
+#!/bin/sh
+# filepath: /home/joseph/project/nuc980/initramfs/output/target/etc/init.d/S90mount_data
+
+sync_data_partition() {
+    echo "Syncing data partition..."
+    sync
+    # Force filesystem sync for YAFFS2
+    echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
+    sync
+    echo "✅ Data partition synced"
+}
+
+clean_python() {
+    echo "Cleaning Python cache..."
+    find /data -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+    find /data -name "*.pyc" -type f -delete 2>/dev/null
+    echo "✅ Python cache cleaned"
+}
+
+start_services() {
+    echo "Starting data mount and services..."
+    
+    # Mount data partition
+    mkdir -p /data
+    mount -t yaffs2 /dev/mtdblock2 /data
+
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Data partition mounted successfully"
+        
+        # ✅ Source profile but preserve working directory
+        ORIGINAL_PWD=$(pwd)
+        . /etc/profile
+        cd "$ORIGINAL_PWD"
+        echo "✅ Environment loaded from profile"
+
+        # Clean Python cache on startup
+        clean_python
+        
+        # Test Python before starting services
+        echo "Testing Python..."
+        if /data/usr/bin/python3 -c "print('Python OK')" 2>/dev/null; then
+            echo "✅ Python test passed"
+        else
+            echo "❌ Python test failed, cleaning and retrying..."
+            clean_python
+            
+            if ! /data/usr/bin/python3 -c "print('Python OK')" 2>/dev/null; then
+                echo "❌ Python still broken, skipping web server"
+                return
+            fi
+        fi
+        
+        # Start telnetd
+        echo "Starting telnetd..."
+        /data/telnetd &
+        echo "✅ telnetd started"
+        
+        # Wait a moment for system to settle
+        sleep 2
+        
+        # Start BLE web server
+        echo "Starting BLE web server..."
+        cd /data/p_dbus
+        
+        if [ -f "./simple_web_server.py" ]; then
+            /data/usr/bin/python3 ./simple_web_server.py > /tmp/webserver.log 2>&1 &
+            WEBSERVER_PID=$!
+            echo "✅ BLE web server started (PID: $WEBSERVER_PID)"
+            echo $WEBSERVER_PID > /tmp/webserver.pid
+        else
+            echo "❌ simple_web_server.py not found"
+        fi
+        
+    else
+        echo "❌ Failed to mount data partition"
+    fi
+}
+
+# If no parameter provided (boot execution), start services
+if [ -z "$1" ]; then
+    start_services
+    exit 0
+fi
+
+# Handle manual parameters
+case "$1" in
+    start)
+        start_services
+        ;;
+        
+    stop)
+        echo "Stopping services and unmounting data..."
+        
+        # Stop web server
+        if [ -f /tmp/webserver.pid ]; then
+            WEBSERVER_PID=$(cat /tmp/webserver.pid)
+            if [ -n "$WEBSERVER_PID" ]; then
+                kill $WEBSERVER_PID 2>/dev/null
+                echo "✅ Web server stopped"
+                rm -f /tmp/webserver.pid
+            fi
+        fi
+        
+        # Stop telnetd
+        killall telnetd 2>/dev/null
+        echo "✅ telnetd stopped"
+        
+        # ✅ CRITICAL: Sync before unmount
+        sync_data_partition
+        
+        # Unmount data partition
+        umount /data
+        if [ $? -eq 0 ]; then
+            echo "✅ Data partition unmounted safely"
+        else
+            echo "❌ Failed to unmount data partition"
+        fi
+        ;;
+        
+    sync)  # ✅ NEW: Manual sync command
+        sync_data_partition
+        ;;
+        
+    shutdown)  # ✅ NEW: Proper shutdown sequence
+        echo "Preparing for shutdown..."
+        
+        # Stop all services
+        $0 stop
+        
+        # Final system sync
+        echo "Final system sync..."
+        sync
+        sync
+        sync
+        echo "✅ System ready for power-off"
+        ;;
+        
+    restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+        
+    clean)
+        echo "Cleaning system..."
+        clean_python
+        rm -rf /data/tmp/* 2>/dev/null
+        sync_data_partition  # ✅ Sync after cleanup
+        echo "✅ Cleanup complete"
+        ;;
+        
+    python_test)
+        echo "Testing Python installation..."
+        /data/usr/bin/python3 -c "
+import sys
+print('✅ Python version:', sys.version)
+print('✅ Python executable:', sys.executable)
+print('✅ Python path:', sys.path)
+try:
+    import dbus
+    print('✅ D-Bus import successful')
+except ImportError as e:
+    print('❌ D-Bus import failed:', e)
+"
+        ;;
+        
+    status)
+        echo "=== Service Status ==="
+        
+        # Check data mount
+        if mount | grep -q "/data"; then
+            echo "✅ Data partition: mounted"
+        else
+            echo "❌ Data partition: not mounted"
+        fi
+        
+        # Check NAND health
+        echo ""
+        echo "=== NAND Flash Status ==="
+        cat /proc/mtd
+        
+        # Test Python
+        if /data/usr/bin/python3 -c "print('OK')" 2>/dev/null; then
+            echo "✅ Python: working"
+        else
+            echo "❌ Python: broken"
+        fi
+        
+        # Check services...
+        if pgrep telnetd > /dev/null; then
+            echo "✅ telnetd: running"
+        else
+            echo "❌ telnetd: not running"
+        fi
+        
+        if [ -f /tmp/webserver.pid ]; then
+            WEBSERVER_PID=$(cat /tmp/webserver.pid)
+            if kill -0 $WEBSERVER_PID 2>/dev/null; then
+                echo "✅ BLE web server: running (PID: $WEBSERVER_PID)"
+            else
+                echo "❌ BLE web server: not running (stale PID file)"
+                rm -f /tmp/webserver.pid
+            fi
+        else
+            echo "❌ BLE web server: not running"
+        fi
+        ;;
+        
+    *)
+        echo "Usage: $0 {start|stop|restart|status|clean|sync|shutdown|python_test}"
+        exit 1
+        ;;
+esac
+
+exit 0

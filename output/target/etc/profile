@@ -1,0 +1,36 @@
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+
+if [ "$PS1" ]; then
+    if [ "`id -u`" -eq 0 ]; then
+        export PS1='# '
+    else
+        export PS1='$ '
+    fi
+fi
+
+export EDITOR='/bin/vi'
+
+# Source configuration files from /etc/profile.d
+for i in /etc/profile.d/*.sh ; do
+    if [ -r "$i" ]; then
+        . $i
+    fi
+done
+unset i
+
+# ✅ Only set data-related environment if /data is mounted
+if [ -d "/data/usr" ]; then
+    export LD_LIBRARY_PATH=/usr/lib:/data/usr/lib:$LD_LIBRARY_PATH
+    export PATH=/data/usr/bin:$PATH
+    export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
+    export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
+fi
+
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PYTHONIOENCODING=utf-8
+
+# ✅ Only change directory for interactive shells, not scripts
+if [ "$PS1" ] && [ -d "/data" ]; then
+    cd /data
+fi
