@@ -1,3 +1,5 @@
+ssh -i "d:/joseph/keys/OraDB.pem"  ubuntu@52.197.102.250 -p 8082
+
 # Add to /etc/init.d/S90mount_data
 mkdir -p /data
 mount -t yaffs2 /dev/mtdblock2 /data
@@ -8,8 +10,96 @@ export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
 cd /data
 
 
+
+# scp gateway controller
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/start_wifi.sh /data/controller/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/nuc980_gateway.zip /data/controller/
+
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/ /data/usr/lib/python3.11/importlib/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/importlib/
+
+cp /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/utf_8.pyc  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/scripts/start_gateway_controller.py /data/controller/scripts/
+
+# First create the directory
+mkdir -p /data/controller
+
+# Then try scp with more verbose output
+scp -v -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/start_wifi.sh /data/controller/
+
+rsync -avz --progress -e "ssh -p 8084" joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/start_wifi.sh /data/controller/
+
+scp joseph@10.22.22.218:/d/Users/joseph/Documents/hotel-gateway-system/start_wifi.sh /data/controller
+scp -P 22 joseph@10.22.22.218:"/d/joseph/app/hotel-gateway-system/start_wifi.sh" /data/controller/
+D:\joseph\app\hotel-gateway-system>
+
+(venv) (base) joseph@j2022-macbook hotel-gateway-system % cat start_wifi.sh
+python scripts/start_gateway_controller.py --config config/setup
+
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/nrf_ble_wifi_start.sh /data/
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/wifi_switch.py /data/
+ 
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/screen /data/usr/sbin
+
+## controller
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/sta-ble/samples/wifi/shell/controller/ /data/
+rsync -avz --progress joseph@52.197.102.250:/home/joseph/project/nuc980/sta-ble/samples/wifi/shell/controller/ /data/ 
+### test hciuart
+# 在您的主機上
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/lib/modules/5.10.140/kernel/drivers/bluetooth/hci_uart.ko /data/usr/lib/modules/
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/lib/modules/5.10.140/kernel/net/bluetooth/bluetooth.ko  /data/usr/lib/modules/
+
+# 先載入 bluetooth 核心模組（如果尚未載入）
+<!-- insmod /data/usr/lib/modules/bluetooth.ko -->
+
+# 然後載入 hci_uart 模組
+insmod /data/usr/lib/modules/hci_uart.ko
+
+hciattach -s 115200 /dev/ttyS4 any 115200 noflow &
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/hciattach /data/usr/sbin
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/hciconfig /data/usr/sbin
+
+### test pppd
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/sbin/pppd  /data/usr/sbin
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libpcap.so.1 /data/usr/lib
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/build/linux-custom/drivers/net/ppp/ppp_generic.ko /data/usr/lib
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/build/linux-custom/drivers/net/slip/slhc.ko /data/usr/lib
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/build/linux-custom/drivers/net/ppp/ppp_async.ko /data/usr/lib
+
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/sbin/slattach /data/usr/bin
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/build/linux-custom/drivers/net/slip/slip.ko /data/usr/lib
+scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/build/linux-custom/drivers/net/slip/slhc.ko /data/usr/lib
+output/build/linux-custom/drivers/net/slip/slhc.ko
+output/build/linux-custom/drivers/net/slip/slip.ko
+insmod /data/usr/lib/slhc.ko
+insmod /data/usr/lib/slip.ko
+
+echo "wifi_connect ssid=JJj pw=0928099869" > /dev/ttyS4
+
+route del default
+route add default gw 192.168.8.1 dev sl0
+cd 
+
+
+output/build/linux-custom/drivers/net/ppp/ppp_generic.ko
+
+insmod /data/usr/lib/slhc.ko
+insmod /data/usr/lib/ppp_generic.ko
+insmod /data/usr/lib/ppp_async.ko
+
+
 ### backup /data/ not include usr
 rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data_no_usr/
+rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20250618/
 
 ## test init.d
 scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/initramfs/output/target/etc/init.d/K90unmount_data  /etc/init.d/
@@ -38,6 +128,9 @@ rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/d
 
 rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_data_dongle/usr/ /data/usr/ 
 
+<!-- rsync -avz --progress -e "ssh -p 8084" --delete  joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/ /data/ -->
+
+rsync -avz --whole-file --progress -e "ssh -p 8084" --delete joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/ /data/
 
 #### backup
 
