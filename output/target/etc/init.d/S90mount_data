@@ -59,17 +59,24 @@ start_services() {
         # Wait a moment for system to settle
         sleep 2
         
-        # Start BLE web server
-        echo "Starting BLE web server..."
-        cd /data/p_dbus
+        # Start Gateway Controller
+        echo "Starting Gateway Controller..."
+        cd /data/controller
         
-        if [ -f "./simple_web_server.py" ]; then
-            /data/usr/bin/python3 ./simple_web_server.py > /tmp/webserver.log 2>&1 &
-            WEBSERVER_PID=$!
-            echo "✅ BLE web server started (PID: $WEBSERVER_PID)"
-            echo $WEBSERVER_PID > /tmp/webserver.pid
+        if [ -f "./start_gateway.sh" ]; then
+            chmod +x ./start_gateway.sh
+            # Rotate log if it gets too big (>500KB) - protect RAM
+            if [ -f "/tmp/gateway.log" ] && [ $(stat -c%s "/tmp/gateway.log" 2>/dev/null || echo 0) -gt 512000 ]; then
+                # Keep only last 100KB when rotating
+                tail -c 102400 /tmp/gateway.log > /tmp/gateway.log.tmp 2>/dev/null
+                mv /tmp/gateway.log.tmp /tmp/gateway.log 2>/dev/null
+            fi
+            ./start_gateway.sh >> /tmp/gateway.log 2>&1 &
+            GATEWAY_PID=$!
+            echo "✅ Gateway Controller started (PID: $GATEWAY_PID)"
+            echo $GATEWAY_PID > /tmp/gateway.pid
         else
-            echo "❌ simple_web_server.py not found"
+            echo "❌ start_gateway.sh not found"
         fi
         
     else
@@ -92,13 +99,13 @@ case "$1" in
     stop)
         echo "Stopping services and unmounting data..."
         
-        # Stop web server
-        if [ -f /tmp/webserver.pid ]; then
-            WEBSERVER_PID=$(cat /tmp/webserver.pid)
-            if [ -n "$WEBSERVER_PID" ]; then
-                kill $WEBSERVER_PID 2>/dev/null
-                echo "✅ Web server stopped"
-                rm -f /tmp/webserver.pid
+        # Stop Gateway Controller
+        if [ -f /tmp/gateway.pid ]; then
+            GATEWAY_PID=$(cat /tmp/gateway.pid)
+            if [ -n "$GATEWAY_PID" ]; then
+                kill $GATEWAY_PID 2>/dev/null
+                echo "✅ Gateway Controller stopped"
+                rm -f /tmp/gateway.pid
             fi
         fi
         
@@ -146,6 +153,8 @@ case "$1" in
         echo "Cleaning system..."
         clean_python
         rm -rf /data/tmp/* 2>/dev/null
+        # Clean RAM logs
+        rm -f /tmp/gateway.log /tmp/gateway.pid 2>/dev/null
         sync_data_partition  # ✅ Sync after cleanup
         echo "✅ Cleanup complete"
         ;;
@@ -163,6 +172,27 @@ try:
 except ImportError as e:
     print('❌ D-Bus import failed:', e)
 "
+        ;;
+        
+    logs)
+        echo "=== Gateway Logs ==="
+        if [ -f /tmp/gateway.log ]; then
+            LOG_SIZE=$(stat -c%s "/tmp/gateway.log" 2>/dev/null || echo 0)
+            echo "📊 Log size: $((LOG_SIZE/1024))KB"
+            echo "📄 Last 20 lines:"
+            tail -20 /tmp/gateway.log
+        else
+            echo "❌ No log file found"
+        fi
+        ;;
+        
+    upload_logs)  # TODO: Future log upload to server
+        echo "🚀 Log upload feature - coming soon!"
+        if [ -f /tmp/gateway.log ]; then
+            LOG_SIZE=$(stat -c%s "/tmp/gateway.log" 2>/dev/null || echo 0)
+            echo "📊 Ready to upload: $((LOG_SIZE/1024))KB"
+            # Future: curl/wget to upload logs to server
+        fi
         ;;
         
     status)
@@ -194,21 +224,24 @@ except ImportError as e:
             echo "❌ telnetd: not running"
         fi
         
-        if [ -f /tmp/webserver.pid ]; then
-            WEBSERVER_PID=$(cat /tmp/webserver.pid)
-            if kill -0 $WEBSERVER_PID 2>/dev/null; then
-                echo "✅ BLE web server: running (PID: $WEBSERVER_PID)"
+        if [ -f /tmp/gateway.pid ]; then
+            GATEWAY_PID=$(cat /tmp/gateway.pid)
+            if kill -0 $GATEWAY_PID 2>/dev/null; then
+                echo "✅ Gateway Controller: running (PID: $GATEWAY_PID)"
+                # Show log size
+                LOG_SIZE=$(stat -c%s "/tmp/gateway.log" 2>/dev/null || echo 0)
+                echo "📊 Log size: $((LOG_SIZE/1024))KB"
             else
-                echo "❌ BLE web server: not running (stale PID file)"
-                rm -f /tmp/webserver.pid
+                echo "❌ Gateway Controller: not running (stale PID file)"
+                rm -f /tmp/gateway.pid
             fi
         else
-            echo "❌ BLE web server: not running"
+            echo "❌ Gateway Controller: not running"
         fi
         ;;
         
     *)
-        echo "Usage: $0 {start|stop|restart|status|clean|sync|shutdown|python_test}"
+        echo "Usage: $0 {start|stop|restart|status|clean|sync|shutdown|python_test|logs|upload_logs}"
         exit 1
         ;;
 esac
