@@ -1,16 +1,131 @@
+cd /home/joseph/project/nuc980/mkyaffs
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2
+output/host/bin/unyaffs2
+-->
+/home/joseph/project/nuc980/mkyaffs/data_partition.yaffs2
+
 1 block 128K(0x20000)
-1M 8block
-20M 160M
+
+offset 0x200 flash uboot
+(offset 0 block, 4 block size)
+
+offset 0x80000 flash env.txt
+(offset 4 block, 4 block size)
+
+offset 0x100000 flash uboot-spl
+(offset 8 block, 4 block size)
+
+offset 0x180000 flash dtb
+(offset 12 block, 4 block size)
+
+offset 0x200000 flash image (max 20M)
+(offset 16 block, 160 block size)
+
+offset 0x1600000 flash image (max 100M)
+(offset 176 block, 800 block size)
+
+ur Flash Layout for User Partition:
+Offset: 0x1600000 (after 20MB kernel)
+
+Device: /dev/mtd5 or /dev/mtdblock5
+
+Size: Remaining flash space
+
+This creates an exact copy of you
 
 
+# On your configured board, create YAFFS2 image
+mkyaffs2image /data /tmp/data_partition.yaffs2
 
-0x80000
-4/1
+# Copy to development machine
+scp /tmp/data_partition.yaffs2 user@host:/path/to/images/
 
-0x180000
-15/1
+Method 2: Raw MTD Copy (Exact Clone)
+# Create raw copy of MTD partition
+dd if=/dev/mtd5 of=/tmp/data_partition.img bs=128k
 
-0x200000
-16/160
-128/8=16M
+# Copy to development machine  
+scp /tmp/data_partition.img user@host:/path/to/images/
 
+Method 3: From Development Machine
+
+# Create YAFFS2 image from your backup directory
+mkyaffs2image /path/to/data_backup/ data_partition.yaffs2
+
+flash:
+# Load image to RAM
+tftp 0x1000000 data_partition.yaffs2
+
+# Erase user partition (adjust size as needed)
+nand erase 0x1600000 0x800000  
+
+# Write YAFFS2 image
+nand write.yaffs 0x1000000 0x1600000 ${filesize}
+
+install option 1:
+sudo apt update
+sudo apt install yaffs2-utils
+
+正在讀取套件清單... 完成
+正在重建相依關係          
+正在讀取狀態資料... 完成
+E: 找不到套件 yaffs2-utils
+
+install option 2:
+# Install dependencies
+sudo apt install build-essential
+
+# Clone and build
+git clone https://github.com/Alexpux/yaffs2utils.git
+cd yaffs2utils
+make
+sudo make install
+
+$ git clone https://github.com/Alexpux/yaffs2utils.git
+正複製到 'yaffs2utils'...
+remote: Repository not found.
+fatal: 版本庫 'https://github.com/Alexpux/yaffs2utils.git/' 未找到
+
+install option 3:
+# If you have buildroot environment
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2image
+
+ ls /home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2image
+ls: 無法存取 '/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2image': 沒有此一檔案或目錄
+joseph@joseph-Virtual-Machine:~/project/nuc980/mkyaffs$ find /home/joseph/project/nuc980/buildroot_2024/output/host  -name mkyaffs2image
+joseph@joseph-Virtual-Machine:~/project/nuc980/mkyaffs$ 
+
+option A
+sudo apt install build-essential git
+
+git clone https://github.com/yaffs2/yaffs2.git
+cd yaffs2/utils
+make
+
+git clone https://github.com/yaffs2/yaffs2.git
+正複製到 'yaffs2'...
+remote: Repository not found.
+fatal: 版本庫 'https://github.com/yaffs2/yaffs2.git/' 未找到
+
+option B:
+
+joseph@joseph-Virtual-Machine:~/project/nuc980/buildroot_2024$ find output/host/ -name *yaffs*
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2
+output/host/bin/unyaffs2
+
+
+create yaffs2 image and flash:
+# 1. Create YAFFS2 image from your backup
+mkyaffs2image /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/ data_partition.yaffs2
+
+# Use buildroot's mkyaffs2 tool
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2 /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/   data_partition.yaffs2
+
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2 /home/joseph/project/nuc980/data_backup/data20250618/   data_partition.yaffs2
+
+/home/joseph/project/nuc980/buildroot_2024/output/host/bin/mkyaffs2
+
+# 2. Flash via U-Boot
+tftp 0x1000000 data_partition.yaffs2
+nand erase 0x1600000 0x6400000  # 100MB = 0x6400000
+nand write.yaffs 0x1000000 0x1600000 ${filesize}
