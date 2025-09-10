@@ -22,7 +22,7 @@ start_services() {
     
     # Mount data partition
     mkdir -p /data
-    mount -t yaffs2 /dev/mtdblock2 /data
+    mount -t yaffs2 /dev/mtdblock5 /data
 
     
     if [ $? -eq 0 ]; then
