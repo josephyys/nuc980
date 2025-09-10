@@ -1,3 +1,36 @@
 #!/bin/sh
-mkdir -p /data
-mount -t yaffs2 /dev/mtdblock2 /data
+
+case "$1" in
+    start)
+        echo "Starting telnetd and mounting data partition..."
+        
+        # Start telnetd
+        telnetd
+        
+        # Mount data partition
+        mkdir -p /data
+        mount -t yaffs2 -o inband-tags /dev/mtdblock2 /data
+        
+        # Set environment variables
+        export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
+        export PATH=/data/usr/bin:$PATH
+        export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
+        export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
+        
+        # Start controller if exists
+        if [ -f /data/controller/start.sh ]; then
+            /data/controller/start.sh &
+        fi
+        ;;
+    stop)
+        echo "Stopping services and unmounting data partition..."
+        killall telnetd 2>/dev/null
+        umount /data 2>/dev/null
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0

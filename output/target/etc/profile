@@ -17,8 +17,3 @@ for i in /etc/profile.d/*.sh ; do
 	fi
 done
 unset i
-
-export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
-export PATH=/data/usr/bin:$PATH
-export PYTHONPATH=/data/usr/lib/python3/site-packages:$PYTHONPATH
-cd /data
