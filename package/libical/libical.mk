@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBICAL_VERSION = 1.0.1
+LIBICAL_VERSION = 3.0.17
 LIBICAL_SITE = https://github.com/libical/libical/releases/download/v$(LIBICAL_VERSION)
 LIBICAL_INSTALL_STAGING = YES
 LIBICAL_LICENSE = MPL-1.0 or LGPL-2.1
@@ -19,5 +19,7 @@ LIBICAL_IGNORE_CVES += CVE-2016-9584
 LIBICAL_CONF_OPTS = -DSHARED_ONLY=true
 # never build time zone info, always use system's tzinfo
 LIBICAL_CONF_OPTS += -DUSE_BUILTIN_TZDATA=false
+LIBICAL_CONF_OPTS += -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+LIBICAL_CONF_OPTS += -DICAL_GLIB=OFF
 
 $(eval $(cmake-package))

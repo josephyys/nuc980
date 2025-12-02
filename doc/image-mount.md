@@ -2,22 +2,139 @@ ssh -i "d:/joseph/keys/OraDB.pem"  ubuntu@52.197.102.250 -p 8082
 
 # Add to /etc/init.d/S90mount_data
 mkdir -p /data
-mount -t yaffs2 /dev/mtdblock2 /data
+mount -t yaffs2 -o inband-tags /dev/mtdblock2 /data
+
+
 export LD_LIBRARY_PATH=/data/usr/lib:$LD_LIBRARY_PATH
 export PATH=/data/usr/bin:$PATH
 export PYTHONPATH=/data/usr/lib/python3.11/site-packages:$PYTHONPATH
 export GI_TYPELIB_PATH=/data/usr/lib/girepository-1.0:/usr/lib/girepository-1.0
 cd /data
 
+## scp
+cp /home/joseph/project/nuc980/data_backup/data20250910/usr/bin/telnetd  /home/joseph/project/nuc980/data_backup/data_minimal/usr/bin/
+cp /home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/rsync  /home/joseph/project/nuc980/data_backup/data_minimal/usr/bin/
+cp /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libpopt.so.0  /home/joseph/project/nuc980/data_backup/data_minimal/usr/lib/
 
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/initramfs/output/target/usr/sbin/telnetd /usr/sbin/
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/hexdump /usr/bin/
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/minicom /usr/bin/
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/tools/uart_control /usr/bin/
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/rsync /usr/bin/
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libpopt.so.0 /usr/lib/
+rsync -avz --progress  joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/ /data/usr/
+rsync -avz --progress /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data_minimal/ 
+
+
+rsync -avz --progress /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_tested_minimal/ 
+
+rsync -avz --progress -e "ssh -p 8084" joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/start_wifi.sh /data/controller/
+
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20250910/ /data/
+
+rsync -avz --progress -e "ssh -p 8084" joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/ /data/
+
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libpopt.so.0 /usr/lib/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/libpopt.so.0 /usr/lib/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980//data_tested_minimal/enhanced_web_server.py /data/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/bin/sha512sum /data/usr/bin/
+
+ scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/bin/python3.11 /data/usr/bin/
+ scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/lib/python3.11/signal.pyc /data/usr/lib/python3.11/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/lib/python3.11/logging/ /data/usr/lib/python3.11/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/lib/python3.11/lib-dynload/_posixsubprocess.cpython-311-arm-linux-gnueabi.so /data/usr/lib/python3.11/lib-dynload/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250910/usr/lib/libpython3.11.so.1.0 /data/usr/lib/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/ /data/usr/lib/python3.11/
+
+/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/
+
+libpython3.11.so.1.0
+
+libpython3.11.so.1.0
+
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/ /data/usr/ 
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/ /data/
+data20250618
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20250618/ /data/
+rsync -avz --progress -e "ssh -p 8084" joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/ /data/
+
+scp -r -P 8084 joseph@52.197.102.250
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/ /data/
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/data_backup/data20250618/usr/bin/rsync /data/
+
+
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/bin/screen /data/usr/bin/
+
+scp joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20250618/telnetd /data/usr/bin/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/flask/ /data/usr/lib/python3.11/site-packages/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/flask/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/site-packages/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/werkzeug/ /data/usr/lib/python3.11/site-packages/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/werkzeug/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/site-packages/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/jinja2/ /data/usr/lib/python3.11/site-packages/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/markupsafe/ /data/usr/lib/python3.11/site-packages/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/itsdangerous/ /data/usr/lib/python3.11/site-packages/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/click/ /data/usr/lib/python3.11/site-packages/
+
+## werkzeug.local
+# Copy all Flask-related packages
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/werkzeug/ \
+      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/site-packages/
+
+# Also copy these if they exist:
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/jinja2/ \
+      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/site-packages/
+
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/markupsafe/ \
+      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/site-packages/
+
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/itsdangerous/ \
+      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/site-packages/
+
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/click/ \
+      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/site-packages/
+
+ 
+ scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/paho/ /data/usr/lib/python3.11/site-packages/paho/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/site-packages/paho/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/site-packages/
 
 # scp gateway controller
 scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/start_wifi.sh /data/controller/
 scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/hotel-gateway-system/nuc980_gateway.zip /data/controller/
 
+# Copy complete encodings directory from buildroot
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/ /data/usr/lib/python3.11/
 
-scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/ /data/usr/lib/python3.11/importlib/
-cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/importlib/
+# Also copy to backup
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/      /home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/lib/python3.11/
+
+      scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/ /data/usr/lib/python3.11/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/__init__*  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/__init__* /data/usr/lib/python3.11/encodings/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/__init__*  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+<!-- output/target/usr/lib/python3.11/encodings -->
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/idna* /data/usr/lib/python3.11/encodings/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/idna*  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/ascii* /data/usr/lib/python3.11/encodings/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/ascii*  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/utf_8* /data/usr/lib/python3.11/encodings/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/utf_8*  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
+
+scp -r -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/ /data/usr/lib/python3.11/
+cp -r /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/importlib/  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/
+
+/home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/importlib/importlib/
 
 cp /home/joseph/project/nuc980/buildroot_2024/output/target/usr/lib/python3.11/encodings/utf_8.pyc  /home/joseph/project/nuc980/data_backup/data20250618/usr/lib/python3.11/encodings/
 
@@ -100,6 +217,8 @@ insmod /data/usr/lib/ppp_async.ko
 ### backup /data/ not include usr
 rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data_no_usr/
 rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20250618/
+rsync -avz --progress --delete /data/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/data20251202/
+rsync -avz --progress --delete /usr/ joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/usr20251202/
 
 ## test init.d
 scp -P 8084 joseph@52.197.102.250:/home/joseph/project/nuc980/initramfs/output/target/etc/init.d/K90unmount_data  /etc/init.d/
@@ -119,7 +238,13 @@ export LD_LIBRARY_PATH=/data/user/usr/lib:$LD_LIBRARY_PATH
 ### rsync
 ** copy to nuc980 **
 
+
+
 ####  restore
+rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/ /data/usr/ 
+
+
+
 ##### dbus
 rsync -avz --progress --delete joseph@10.22.22.107:/home/joseph/project/nuc980/data_backup/backup_nuc980_dbus/usr/ /data/usr/ 
 
