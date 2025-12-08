@@ -5,10 +5,11 @@ case "$1" in
         echo "Starting telnetd and mounting data partition..."
         
         # Start telnetd
-        telnetd
+        /usr/sbin/telnetd
         
         # Mount data partition
         mkdir -p /data
+        umount /data 2>/dev/null
         mount -t yaffs2 -o inband-tags /dev/mtdblock2 /data
         
         # Set environment variables
@@ -19,7 +20,8 @@ case "$1" in
         
         # Start controller if exists
         if [ -f /data/controller/start.sh ]; then
-            /data/controller/start.sh &
+            cd /data/controller
+            env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PATH="$PATH" PYTHONPATH="$PYTHONPATH" GI_TYPELIB_PATH="$GI_TYPELIB_PATH" ./start.sh &
         fi
         ;;
     stop)

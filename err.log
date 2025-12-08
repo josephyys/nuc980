@@ -1,0 +1,9 @@
+n/dtc; fi
+>>> linux custom Installing to images directory
+/usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/arch/arm/boot/uImage /home/joseph/project/nuc980/initramfs/output/images/uImage
+if grep -q "CONFIG_ARCH_NUC980=y" /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.config; then /usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/../image/980image /home/joseph/project/nuc980/initramfs/output/images/; /usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/../image/*.dtb /home/joseph/project/nuc980/initramfs/output/images/; fi
+if grep -q "CONFIG_ARCH_NUC970=y" /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.config; then /usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/../image/*.dtb /home/joseph/project/nuc980/initramfs/output/images/; if grep -q "CONFIG_CPU_N9H30=y" /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.config; then /usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/../image/n9h30image /home/joseph/project/nuc980/initramfs/output/images/; else /usr/bin/install -m 0644 -D /home/joseph/project/nuc980/initramfs/output/build/linux-custom/../image/970image /home/joseph/project/nuc980/initramfs/output/images/; fi fi
+comm: /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.files-list.before: No such file or directory
+comm: /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.files-list-staging.before: No such file or directory
+comm: /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.files-list-images.before: No such file or directory
+comm: /home/joseph/project/nuc980/initramfs/output/build/linux-custom/.files-list-host.before: No such file or directory
